@@ -36,13 +36,13 @@ if st.button("検索"):
 
     for e in events:
 
-    date = re.sub("<.*?>", "", e["performance_date"])
+        date = re.sub("<.*?>", "", e["performance_date"])
 
-    st.write("📅", date)
-    st.write("🎪", e["name"])
-    st.write("📍", e["venue_name"])
+        st.write("📅", date)
+        st.write("🎪", e["name"])
+        st.write("📍", e["venue_name"])
 
-    ics = f"""BEGIN:VCALENDAR
+        ics = f"""BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 SUMMARY:{e['name']}
