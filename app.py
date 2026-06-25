@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import re
+from datetime import datetime
 
 st.title("🎭 推しスケ")
 
@@ -35,9 +36,28 @@ if st.button("検索"):
 
     for e in events:
 
-        date = re.sub("<.*?>", "", e["performance_date"])
+    date = re.sub("<.*?>", "", e["performance_date"])
 
-        st.write("📅", date)
-        st.write("🎪", e["name"])
-        st.write("📍", e["venue_name"])
-        st.write("---")
+    st.write("📅", date)
+    st.write("🎪", e["name"])
+    st.write("📍", e["venue_name"])
+
+    ics = f"""BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:{e['name']}
+DTSTART;VALUE=DATE:{date[:4]}{date[5:7]}{date[8:10]}
+DTEND;VALUE=DATE:{date[:4]}{date[5:7]}{date[8:10]}
+LOCATION:{e['venue_name']}
+END:VEVENT
+END:VCALENDAR
+"""
+
+    st.download_button(
+        "📥 カレンダー登録",
+        data=ics,
+        file_name="event.ics",
+        mime="text/calendar"
+    )
+
+    st.write("---")
