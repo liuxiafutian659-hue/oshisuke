@@ -1,63 +1,73 @@
 import streamlit as st
-import requests
-import re
 from datetime import datetime
 
-st.title("🎭 推しスケ")
+st.set_page_config(page_title="WaraCal", page_icon="🗓", layout="centered")
 
-name = st.text_input("芸人名")
+# =====================
+# ヘッダー
+# =====================
+st.title("WaraCal 🗓")
+st.caption("芸人スケジュールを、カレンダーに。")
 
-if st.button("検索"):
+st.divider()
 
-    events = []
-    offset = 0
+# =====================
+# 検索
+# =====================
+query = st.text_input("芸人名を入力", placeholder="例：三遊間")
 
-    while True:
+search = st.button("検索")
 
-        r = requests.get(
-            "https://ticket.fany.lol/search/event_more",
-            params={
-                "keywords": name,
-                "search_type": "search_string",
-                "offset": offset
-            }
-        )
+# =====================
+# ダミーデータ（後で差し替え）
+# =====================
+dummy_data = {
+    "三遊間": [
+        {
+            "date": "2026/06/26",
+            "title": "よしもとライブ東京",
+            "time": "19:00",
+            "place": "ルミネtheよしもと"
+        },
+        {
+            "date": "2026/06/27",
+            "title": "単独ライブ",
+            "time": "18:30",
+            "place": "なんばグランド花月"
+        }
+    ],
+    "default": [
+        {
+            "date": "2026/06/26",
+            "title": "サンプルライブ",
+            "time": "19:00",
+            "place": "○○劇場"
+        }
+    ]
+}
 
-        data = r.json()["performances"]
+# =====================
+# 検索結果表示
+# =====================
+if search:
+    data = dummy_data.get(query, dummy_data["default"])
 
-        if len(data) == 0:
-            break
+    st.subheader("📅 出演スケジュール")
 
-        events.extend(data)
+    # 日付ごとにまとめる
+    grouped = {}
+    for item in data:
+        grouped.setdefault(item["date"], []).append(item)
 
-        offset += len(data)
+    for date, events in grouped.items():
+        st.markdown(f"### 🗓 {date}")
 
-    st.success(f"{len(events)}件見つかりました！")
-
-    for e in events:
-
-        date = re.sub("<.*?>", "", e["performance_date"])
-
-        st.write("📅", date)
-        st.write("🎪", e["name"])
-        st.write("📍", e["venue_name"])
-
-        ics = f"""BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-SUMMARY:{e['name']}
-DTSTART;VALUE=DATE:{date[:4]}{date[5:7]}{date[8:10]}
-DTEND;VALUE=DATE:{date[:4]}{date[5:7]}{date[8:10]}
-LOCATION:{e['venue_name']}
-END:VEVENT
-END:VCALENDAR
-"""
-
-    st.download_button(
-        "📥 カレンダー登録",
-        data=ics,
-        file_name="event.ics",
-        mime="text/calendar"
-    )
-
-    st.write("---")
+        for e in events:
+            st.markdown(
+                f"""
+                **{e['title']}**  
+                {e['time']} / {e['place']}  
+                ➕ カレンダー追加（仮）
+                """
+            )
+            st.divider()
